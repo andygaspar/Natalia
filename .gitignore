@@ -1,0 +1,5 @@
+data/*
+/not needed
+/venv
+trajectories/*
+/.idea
