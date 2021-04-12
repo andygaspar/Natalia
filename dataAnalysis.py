@@ -1,4 +1,6 @@
+import d2 as d2
 import pandas as pd
+import numpy as np
 from os import listdir
 from os.path import isfile, join
 
@@ -33,6 +35,18 @@ flights = [Flight(df_flights.iloc[i], df_trajectories) for i in range(20)]
 
 for flight in flights:
     print(flight.departureTime, flight.original_trajectory.iloc[:1])
+
+from shapely.geometry import LineString
+from shapely import wkb
+for tb in d2.itertuples():
+    t = wkb.loads(tb.trajectory, hex=True)
+    numerics = np.array(t)
+    if checkOD(numerics, origin, destination):
+        t = LineString(numerics * np.array([1.0, 1.0, 0.0007]))
+        dataset.append(t)
+    else:
+        d2.drop(tb.Index, inplace=True)
+
 
 
 
