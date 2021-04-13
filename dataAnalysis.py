@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from os import listdir
 from os.path import isfile, join
+from os import walk
+
 
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)

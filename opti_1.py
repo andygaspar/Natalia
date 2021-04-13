@@ -20,7 +20,7 @@ df_open["period"] = df_open.minute_start // 60
 nations_dict = dict(zip(df_nations.prefix, df_nations.country))
 df_open["area"] = df_open.icao_short.apply(lambda icao: nations_dict[icao[:2]])
 
-df_test = df_open[(df_open.period >= 12) & (df_open.period <= 14)].copy()
+df_test = df_open[(df_open.period >= 11) & (df_open.period <= 14)].copy()
 
 acc_list = []
 capacity = []
@@ -49,13 +49,10 @@ filtered = ['Germany (civil)', 'Iceland',
             'France (Metropolitan France; including Saint-Pierre and Miquelon)',
             'Switzerland', 'Italy', 'Spain (Canary Islands)',
             'Belgium', 'Poland', 'Slovenia',
-            'Czech Republic', 'Hungary', 'Bulgaria', 'Malta', 'Austria', 'Cypruslia', 'Estonia', 'Moldova',
-            'Finland', 'Serbia and Montenegro', 'Croatia',
-            'Sweden', 'Netherlands',
-            'Portugal (including the Azores and Madeira)', 'Slovakia',
-            'Ireland',
-            'Denmark and the Faroe Islands', 'Bosnia and Herzegovina',
-            'Romania', 'Luxembourg', 'Latvia', 'Lithuania']
+            'Czech Republic', 'Hungary', 'Bulgaria', 'Malta', 'Austria', 'Cypruslia', 'Estonia', 'Moldova']
+            # 'Finland', 'Serbia and Montenegro', 'Croatia', 'Netherlands', 'Sweden',
+            # 'Portugal (including the Azores and Madeira)', 'Slovakia', 'Ireland',
+            # 'Denmark and the Faroe Islands', 'Bosnia and Herzegovina', 'Romania', 'Luxembourg', 'Latvia', 'Lithuania']
 acc_df = acc_df[acc_df.area.isin(filtered)]
 
 print(acc_df)
@@ -72,7 +69,7 @@ class Area:
 
 areas = {}
 areas_list = []
-periods = dict(zip([0, 1], [12, 13]))
+periods = dict(zip([0, 1, 2], [11,12, 13]))
 index = 0
 for area in acc_df.area.unique():
     new_area = Area(area, index, acc_df[acc_df.area == area])
@@ -93,6 +90,10 @@ for a in range(len(areas_list)):
     for t in periods.keys():
         p.addConstraint(areas_list[a].load[periods[t]] - areas_list[a].capacity[periods[t]] - xp.Sum(
             y[a, j, t] for j in range(len(areas_list))) + xp.Sum(y[j, a, t] for j in range(len(areas_list))) <= e[a, t])
+        available = 1 if (areas_list[a].load[periods[t]] - areas_list[a].capacity[periods[t]]) < 0 else 0
+        # print(areas_list[a].name, available, areas_list[a].load[periods[t]], areas_list[a].capacity[periods[t]])
+        p.addConstraint(xp.Sum(y[j, a, t] for j in range(len(areas_list))) <= 10000 * available)
+        p.addConstraint(xp.Sum(y[a, j, t] for j in range(len(areas_list))) <= 10000 * (1-available))
         p.addConstraint(e[a, t] >= 0)
 
     idxs = [i for i in range(len(matches)) if
@@ -104,9 +105,11 @@ for i in range(len(matches)):
     a = matches[i][0].index
     b = matches[i][1].index
 
-    p.addConstraint(xp.Sum(y[a, b, t] + y[b, a, t] for t in periods.keys()) <= 1000 * m[i])
+    p.addConstraint(xp.Sum(y[a, b, t] + y[b, a, t] for t in periods.keys()) <= 10000 * m[i])
 
-p.setObjective(xp.Sum(xp.Sum(e[a, t] for t in periods.keys()) for a in range(len(areas_list))), sense=xp.minimize)
+p.setObjective(xp.Sum(xp.Sum(e[a, t] for t in periods.keys()) for a in range(len(areas_list)))
+               + 0.001*xp.Sum(xp.Sum(xp.Sum(y[a, b, t] for t in periods.keys()) for a in range(len(areas_list)))
+                        for b in range(len(areas_list))), sense=xp.minimize)
 
 t = time.time()
 p.solve()
