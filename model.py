@@ -23,8 +23,11 @@ class Model:
         self._areasList = areas_list
         self._periods = periods
         self._matches = np.array(list(combinations(self._areasList, 2)))
+        print(len(self._areasList))
+        print(len(self._matches))
 
         self.p = xp.problem()
+        # self.p.setControl('presolve',0)
 
         self.e = np.array([[xp.var(vartype=xp.integer) for _ in self._periods] for _ in areas_list])
         self.y = np.array(
@@ -39,20 +42,20 @@ class Model:
         for a in range(len(self._areasList)):
             for t in self._periods.keys():
                 self.p.addConstraint(
-                    self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
-                        self._periods[t]] - xp.Sum(
-                        self.y[a, j, t] for j in range(len(self._areasList))) + xp.Sum(
+                    self._areasList[a].demand[self._periods[t]]
+                    - self._areasList[a].capacity[self._periods[t]]
+                    - xp.Sum(
+                        self.y[a, j, t] for j in range(len(self._areasList)))
+                    + xp.Sum(
                         self.y[j, a, t] for j in range(len(self._areasList))) <=
                     self.e[a, t])
 
-                available = 1 if (self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
-                    self._periods[t]]) < 0 else 0
-                self.p.addConstraint(xp.Sum(self.y[j, a, t] for j in range(len(self._areasList))) <= 10000 * available)
-
-                self.p.addConstraint(
-                    xp.Sum(self.y[a, j, t] for j in range(len(self._areasList))) <= 10000 * (1 - available))
-
-                self.p.addConstraint(self.e[a, t] >= 0)
+                # available = 1 if (self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
+                #     self._periods[t]]) < 0 else 0
+                # self.p.addConstraint(xp.Sum(self.y[j, a, t] for j in range(len(self._areasList))) <= 10000 * available)
+                #
+                # self.p.addConstraint(
+                #     xp.Sum(self.y[a, j, t] for j in range(len(self._areasList))) <= 10000 * (1 - available))
 
             idxs = [i for i in range(len(self._matches)) if
                     self._matches[i][0].name == self._areasList[a].name or self._matches[i][1].name == self._areasList[
@@ -89,16 +92,16 @@ class Model:
         self.solutionMatches = self.p.getSolution(self.m)
         for i in range(len(self.solutionMatches)):
             if self.solutionMatches[i] > 0.9:
-                print(self._matches[i][0].name, self._matches[i][1].name)
-                for j in self._periods.keys():
-                    if self.flow[self._matches[i][0].index, self._matches[i][1].index, j] \
-                            + self.flow[self._matches[i][1].index, self._matches[i][0].index, j] >= 1:
-
-                        print(int(self.flow[self._matches[i][0].index, self._matches[i][1].index, j]),
-                              int(self.flow[self._matches[i][1].index, self._matches[i][0].index, j]), "period:",j)
-                        print(int(
-                            self._matches[i][0].demand[self._periods[j]] -
-                            self._matches[i][0].capacity[self._periods[j]]),
-                              int(self._matches[i][1].demand[self._periods[j]] - self._matches[i][1].capacity[
-                                  self._periods[j]]))
-                print()
+                print(self._matches[i][0].name+" - "+self._matches[i][1].name)
+                # for j in self._periods.keys():
+                #     if self.flow[self._matches[i][0].index, self._matches[i][1].index, j] \
+                #             + self.flow[self._matches[i][1].index, self._matches[i][0].index, j] >= 1:
+                #
+                #         print(int(self.flow[self._matches[i][0].index, self._matches[i][1].index, j]),
+                #               int(self.flow[self._matches[i][1].index, self._matches[i][0].index, j]), "period:",j)
+                #         print(int(
+                #             self._matches[i][0].demand[self._periods[j]] -
+                #             self._matches[i][0].capacity[self._periods[j]]),
+                #               int(self._matches[i][1].demand[self._periods[j]] - self._matches[i][1].capacity[
+                #                   self._periods[j]]))
+                # print()
