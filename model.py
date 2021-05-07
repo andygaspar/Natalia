@@ -52,6 +52,7 @@ class Model:
 
                 # available = 1 if (self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
                 #     self._periods[t]]) < 0 else 0
+                #
                 # self.p.addConstraint(xp.Sum(self.y[j, a, t] for j in range(len(self._areasList))) <= 10000 * available)
                 #
                 # self.p.addConstraint(

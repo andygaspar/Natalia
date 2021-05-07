@@ -1,4 +1,4 @@
-import d2 as d2
+#import d2 as d2
 import pandas as pd
 import numpy as np
 from os import listdir
