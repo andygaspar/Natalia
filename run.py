@@ -5,9 +5,6 @@ from model import Model, Area
 
 #np.random.seed()
 df_nations = pd.read_csv('data/icao_nations.csv')
-
-df = pd.read_csv("test_lesson.csv")
-
 df = pd.read_csv("data/first_test_4countries.csv")
 
 
