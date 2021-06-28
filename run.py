@@ -4,8 +4,8 @@ import pandas as pd
 from model import Model, Area
 
 #np.random.seed()
-df_nations = pd.read_csv('data/icao_nations.csv')
-df = pd.read_csv("data/first_test_4countries.csv")
+df_nations = pd.read_csv('old/data/icao_nations.csv')
+df = pd.read_csv("old/data/first_test_4countries.csv")
 
 
 

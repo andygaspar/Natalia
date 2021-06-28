@@ -23,11 +23,9 @@ class Model:
         self._areasList = areas_list
         self._periods = periods
         self._matches = np.array(list(combinations(self._areasList, 2)))
-        print(len(self._areasList))
-        print(len(self._matches))
 
         self.p = xp.problem()
-        # self.p.setControl('presolve',0)
+
 
         self.e = np.array([[xp.var(vartype=xp.integer) for _ in self._periods] for _ in areas_list])
         self.y = np.array(
@@ -45,18 +43,18 @@ class Model:
                     self._areasList[a].demand[self._periods[t]]
                     - self._areasList[a].capacity[self._periods[t]]
                     - xp.Sum(
-                        self.y[a, j, t] for j in range(len(self._areasList)))
+                        self.y[a, other_area, t] for other_area in range(len(self._areasList)))
                     + xp.Sum(
-                        self.y[j, a, t] for j in range(len(self._areasList))) <=
+                        self.y[other_area, a, t] for other_area in range(len(self._areasList))) <=
                     self.e[a, t])
 
-                # available = 1 if (self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
-                #     self._periods[t]]) < 0 else 0
-                #
-                # self.p.addConstraint(xp.Sum(self.y[j, a, t] for j in range(len(self._areasList))) <= 10000 * available)
-                #
-                # self.p.addConstraint(
-                #     xp.Sum(self.y[a, j, t] for j in range(len(self._areasList))) <= 10000 * (1 - available))
+                available = 1 if (self._areasList[a].demand[self._periods[t]] - self._areasList[a].capacity[
+                    self._periods[t]]) < 0 else 0
+
+                self.p.addConstraint(xp.Sum(self.y[j, a, t] for j in range(len(self._areasList))) <= 10000 * available)
+
+                self.p.addConstraint(
+                    xp.Sum(self.y[a, j, t] for j in range(len(self._areasList))) <= 10000 * (1 - available))
 
             idxs = [i for i in range(len(self._matches)) if
                     self._matches[i][0].name == self._areasList[a].name or self._matches[i][1].name == self._areasList[
