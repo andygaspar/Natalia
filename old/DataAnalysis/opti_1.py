@@ -6,11 +6,11 @@ import numpy as np
 
 xp.controls.outputlog = 0
 
-df_sh = pd.read_csv('data/sector_hours.csv')
-df_geo = pd.read_csv('data/df_geo.csv')
-df_mat = pd.read_csv('data/per_mat.csv')
-df_geo_one = pd.read_csv('data/df_geo_one.csv')
-df_sh_name = pd.read_csv('data/flight_sector_EU.csv')
+df_sh = pd.read_csv('RowData/sector_hours.csv')
+df_geo = pd.read_csv('RowData/df_geo.csv')
+df_mat = pd.read_csv('RowData/per_mat.csv')
+df_geo_one = pd.read_csv('RowData/df_geo_one.csv')
+df_sh_name = pd.read_csv('RowData/flight_sector_EU.csv')
 df_nations = pd.read_csv('../data/icao_nations.csv')
 
 df_open = df_sh[df_sh["capacity"] > 0].copy()

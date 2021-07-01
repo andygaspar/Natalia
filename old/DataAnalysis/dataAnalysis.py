@@ -9,9 +9,9 @@ from os import walk
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-df_trajectories = pd.read_csv("data/trajectories.csv")
-df_flights = pd.read_csv("data/one_day_flights.csv")
-df_sectors = pd.read_csv("data/sectorhours.csv")
+df_trajectories = pd.read_csv("RowData/trajectories.csv")
+df_flights = pd.read_csv("RowData/one_day_flights.csv")
+df_sectors = pd.read_csv("RowData/sectorhours.csv")
 #
 # print(df_trajectories)
 print(df_flights)

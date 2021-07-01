@@ -7,7 +7,7 @@ import csv
 from os import walk
 
 
-path = "data/test"
+path = "RowData/test"
 _, _, filenames = next(walk(path))
 print(filenames)
 
@@ -49,6 +49,6 @@ for file in filenames:
 
     final_df = pd.concat([final_df, new_df])
 
-# final_df.to_csv("data/first_test_4countries.csv")
+# final_df.to_csv("RowData/first_test_4countries.csv")
 
 # print(final_df[final_df.capacity < final_df.demand])
