@@ -1,5 +1,5 @@
 old/data/*
-/not needed
+/old/not needed
 /venv
 trajectories/*
 /.idea
