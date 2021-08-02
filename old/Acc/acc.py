@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from RowData.configuration_data import set_configuration_df
+from old.configuration_data import set_configuration_df
 
 
 class NSectors:

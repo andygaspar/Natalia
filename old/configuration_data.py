@@ -15,7 +15,7 @@ def hours_conversion(time):
 
 
 def set_configuration_df():
-    df_open = pd.read_csv("RowData/ACCs_ActualCapacities/OpeningSchemes_1907_1908.csv", sep=",", low_memory=False)
+    df_open = pd.read_csv("RowData/ACCs_ActualCapacities/OpeningSchemes.csv", sep=",", low_memory=False)
 
     #cleaning None in ACC
     ACC_new = df_open["ACC"].apply(lambda acc: acc if type(acc) == str else "None")
