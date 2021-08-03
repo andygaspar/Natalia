@@ -80,11 +80,6 @@ accs[:10]
 
 
 
-
-
-
-
-
 days = df_delayed.Date.unique()
 day  = days[0]
 
