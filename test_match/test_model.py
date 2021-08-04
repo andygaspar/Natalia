@@ -8,9 +8,10 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-df_delayed = pd.read_csv("test_match/delayed_flights.csv")
+df_delayed = pd.read_csv("test_match/delayed_flights_15_min.csv")
 df_regulation = pd.read_csv("test_match/regulations.csv")
-df_open = pd.read_csv("RowData/ACCs_ActualCapacities/OpeningSchemes.csv")
+df_open = pd.read_csv("RowData/ACCs_ActualCapacities/opening_schemes.csv")
+s
 
 
 
@@ -37,8 +38,5 @@ df_r_day.ID.unique()
 i = 2
 print(df_r_day.ID.unique()[i])
 print(df_r_day.ID.unique()[i] in df_o_day.ACC.unique(), "\n", df_o_day.ACC.unique())
-dod
-['LCCCCTA', 'LKAAUTA', 'LFMMCTA', 'LFEECTA', 'LSAGUTA']
 
-LFMMCTA
 
