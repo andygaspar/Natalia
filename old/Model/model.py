@@ -26,7 +26,6 @@ class Model:
 
         self.p = xp.problem()
 
-
         self.e = np.array([[xp.var(vartype=xp.integer) for _ in self._periods] for _ in areas_list])
         self.y = np.array(
             [[[xp.var(vartype=xp.integer) for _ in self._periods] for _ in areas_list] for _ in areas_list])

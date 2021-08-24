@@ -2,16 +2,11 @@ import numpy as np
 import random
 
 
-# class Sector:
-#     def __init__(self, name, capacity, time_period):
-#         self.name = name
-#         self.capacity = capacity
-#         self.open = np.array([False for _ in len(time_period)])
-
 class Acc:
     def __init__(self, name, interval_size, time_intervals, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_max_config, sector_capacity=40):
+                 df_max_config, sector_capacity=30, only_staffing=False):
         self.name = name
+        self.onlyStaffing = only_staffing
         self.maxDelayed = 0
         self.sectorsOpen = self.get_sectors_open(time_intervals, df_open_acc)
         self.max_config = df_max_config.iloc[0].max_sectors
@@ -22,8 +17,6 @@ class Acc:
 
         self.sector_capacity = round(interval_size * sector_capacity / 60)
         self.spareCapacity = self.make_spare(time_intervals)
-
-
 
     @staticmethod
     def get_start_end_conditions(start_time, end_time, df):
@@ -38,7 +31,7 @@ class Acc:
         opens = np.zeros(len(time_intervals) - 1, dtype=int)
         for i in range(opens.shape[0]):
             df_int = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_open_acc)
-            busiest_configs = [max(df_int[df_int.ACC == acc].n_sectors) for acc in df_int.ACC.unique()]
+            busiest_configs = [max(df_int[df_int.acc == acc].n_sectors) for acc in df_int.acc.unique()]
             opens[i] = sum(busiest_configs)
 
         return opens
@@ -46,15 +39,22 @@ class Acc:
     def get_actual_capacity(self, time_intervals):
         actual_capacity = np.zeros(len(time_intervals) - 1)
         for i in range(actual_capacity.shape[0]):
-            actual_capacity[i] = random.choice(range(self.sectorsOpen[i], self.max_config + 1))
+            if self.sectorsOpen[i] < self.max_config:
+                actual_capacity[i] = random.choice(range(self.sectorsOpen[i], self.max_config + 1))
+            else:
+                actual_capacity[i] = self.max_config
 
         return actual_capacity
 
     def get_delayed(self, time_intervals, df_delayed_acc, df_regulation_acc):
-        df_staffing = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
+        if self.onlyStaffing:
+            df_in_need = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
+        else:
+            df_in_need = df_regulation_acc[
+                (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
         delays = np.zeros(len(time_intervals) - 1, dtype=int)
-        for regulation in df_staffing.Regulation:
-            df_staff = df_staffing[df_staffing.Regulation == regulation]
+        for regulation in df_in_need.Regulation:
+            df_staff = df_in_need[df_in_need.Regulation == regulation]
             df_del = df_delayed_acc[df_delayed_acc.MPR == regulation]
             delays_reg = df_del["Total Delay"].sort_values(ascending=False).to_numpy()
             start = df_staff.iloc[0].start
@@ -77,13 +77,20 @@ class Acc:
     def get_regulated(self, time_intervals, df_regulation_acc):
         in_need = np.zeros(len(time_intervals) - 1, dtype=bool)
         regulated = np.zeros(len(time_intervals) - 1, dtype=bool)
-        df_staffing = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
-        for i in range(in_need.shape[0]):
-            df_reg = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_regulation_acc)
-            regulated[i] = True if df_reg.shape[0] > 0 else False
+        if df_regulation_acc.shape[0] > 0:
+            if self.onlyStaffing:
+                df_in_need = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
+            else:
+                df_in_need = df_regulation_acc[
+                    (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
+            for i in range(in_need.shape[0]):
+                df_reg = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_regulation_acc)
+                regulated[i] = True if df_reg.shape[0] > 0 else False
 
-            df_staff = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_staffing)
-            in_need[i] = True if df_staff.shape[0] > 0 else False
+                df_staff = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_in_need)
+                in_need[i] = True if df_staff.shape[0] > 0 else False
+
+            # TO DO check airspace capacity
 
         return in_need, regulated
 
