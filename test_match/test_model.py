@@ -27,6 +27,7 @@ def get_day_df(d, df_delayed, df_regulation, df_open):
 
     return df_d_d, df_r_d, df_o_d
 
+
 def get_acc_df(a, df_delayed, df_regulation, df_open, df_mc):
     df_r_acc = df_regulation[df_regulation.acc == a]
     df_d_acc = df_delayed[df_delayed.MPR.isin(df_r_acc.Regulation)]
