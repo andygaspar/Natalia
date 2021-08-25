@@ -3,8 +3,10 @@ import random
 
 
 class Acc:
-    def __init__(self, name, interval_size, time_intervals, df_open_acc, df_regulation_acc, df_delayed_acc,
+    def __init__(self, index, name, interval_size, time_intervals, df_open_acc, df_regulation_acc, df_delayed_acc,
                  df_max_config, sector_capacity=30, only_staffing=False):
+
+        self.index = index
         self.name = name
         self.onlyStaffing = only_staffing
         self.maxDelayed = 0
