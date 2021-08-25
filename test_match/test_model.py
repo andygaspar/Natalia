@@ -5,7 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from ACC import acc as a
 from Solver.solver import Solver
-from Solver.vars import Ivars
+from Solver.vars import Ivars, VarsIndexes
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -48,7 +48,7 @@ comp_time = time.time()
 
 accs = []
 acc_index = 0
-for acc in df_acc.acc.unique():
+for acc in df_acc.acc.unique()[:20]:
     print(acc)
     df_d_day, df_r_day, df_o_day = get_day_df(day, df_delayed, df_regulation, df_open)
     df_d_acc, df_r_acc, df_o_acc, df_m_acc = get_acc_df(acc, df_d_day, df_r_day, df_o_day, df_mc)
@@ -71,19 +71,31 @@ print("done", time.time() - comp_time)
 vars = {}
 for t in range(len(intervals)-1):
     vars[t] = Ivars(t)
+    i = 0
+    j = 0
     for acc in accs:
         if acc.inNeed[t]:
+            if t not in acc.vars_indexes.keys():
+                acc.vars_indexes[t] = VarsIndexes()
+            acc.vars_indexes[t].inNeedIndex = i
+            i += 1
             print(acc, acc.delayedFlights[t])
             vars[t].add_in_need(acc)
     for acc in accs:
         if acc.spareCapacity[t]:
+            if t not in acc.vars_indexes.keys():
+                acc.vars_indexes[t] = VarsIndexes()
+            acc.vars_indexes[t].spareIndex = j
             vars[t].add_available(acc)
+            j += 1
             print(acc, acc.spareCapacity[t])
 
 
-print("end")
+solver = Solver(accs, vars)
 
 
 
+
+print("mandi")
 
 

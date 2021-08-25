@@ -3,24 +3,34 @@ import xpress as xp
 
 import numpy as np
 
+from Solver.vars import Ivars
+from typing import List, Set, Dict, Tuple, Optional
 
 class Solver:
 
-    def __init__(self, accs, intervals):
+    def __init__(self, accs, vars: Dict[int, Ivars]):
         self.accs = accs
         self.accsNum = len(accs)
-        self.intervals = intervals
-        self.intNum = len(intervals)
         self.matches = np.array(list(combinations(self.accs, 2)))
 
         self.p = xp.problem()
-        self.x = np.array([[[xp.var(vartype=xp.binary) for _ in intervals] for _ in accs] for _ in self.accs])
         self.m = np.array([xp.var(vartype=xp.binary) for _ in self.matches])
+        self.p.addVariable(self.m)
 
-        self.p.addVariable(self.x, self.m)
+        self.vars = vars
+        self.varsDict = {}
+
+        for period in vars.keys():
+            if not vars[period].empty:
+                self.varsDict[period] = np.array(
+                    [[xp.var(vartype=xp.binary) for _ in vars[period].available] for _ in vars[period].inNeed])
+                self.p.addVariable(self.varsDict[period])
 
     def set_constraints(self):
         # t is the index of the time period
+
+        for acc in self.accs:
+            self.p.addConstraint(self.x[i, j, t] == 0)
 
         for acc in self.accs:
             # no self colab

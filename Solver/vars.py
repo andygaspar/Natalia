@@ -1,3 +1,9 @@
+class VarsIndexes:
+    def __init__(self):
+        self.inNeedIndex = None
+        self.spareIndex = None
+
+
 class Ivars:
     def __init__(self, period):
         self.period = period

@@ -1,6 +1,10 @@
 import numpy as np
 import random
 
+from typing import Dict
+
+from Solver.vars import VarsIndexes
+from collections.abc import Sequence
 
 class Acc:
     def __init__(self, index, name, interval_size, time_intervals, df_open_acc, df_regulation_acc, df_delayed_acc,
@@ -16,6 +20,8 @@ class Acc:
         self.actualCapacity = self.get_actual_capacity(time_intervals)
         self.inNeed, self.regulated = self.get_regulated(time_intervals, df_regulation_acc)
         self.delayedFlights = self.get_delayed(time_intervals, df_delayed_acc, df_regulation_acc)
+
+        self.vars_indexes = {}
 
         self.sector_capacity = round(interval_size * sector_capacity / 60)
         self.spareCapacity = self.make_spare(time_intervals)
@@ -36,9 +42,12 @@ class Acc:
             busiest_configs = [max(df_int[df_int.acc == acc].n_sectors) for acc in df_int.acc.unique()]
             opens[i] = sum(busiest_configs)
 
+            # check that there is only one item
+
         return opens
 
     def get_actual_capacity(self, time_intervals):
+
         actual_capacity = np.zeros(len(time_intervals) - 1)
         for i in range(actual_capacity.shape[0]):
             if self.sectorsOpen[i] < self.max_config:
@@ -89,10 +98,12 @@ class Acc:
                 df_reg = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_regulation_acc)
                 regulated[i] = True if df_reg.shape[0] > 0 else False
 
-                df_staff = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_in_need)
-                in_need[i] = True if df_staff.shape[0] > 0 else False
-
-            # TO DO check airspace capacity
+                df_in_need_interval = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1],
+                                                                    df_in_need)
+                if df_in_need_interval.shape[0] > 0 and self.availableCapacity[i] > 0:
+                    in_need[i] = True
+                else:
+                    in_need[i] = False
 
         return in_need, regulated
 
@@ -101,6 +112,8 @@ class Acc:
         for i in range(spare_capacity.shape[0]):
             if not self.regulated[i]:
                 spare_capacity[i] = self.actualCapacity[i] - self.sectorsOpen[i]
+
+                # to do, add saturation consideration to capture sectors underused
 
         return spare_capacity
 
