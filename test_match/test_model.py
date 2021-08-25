@@ -67,35 +67,32 @@ print("done", time.time() - comp_time)
 # print(len(solver.matches))
 #
 # solver.set_constraints()
+i_mat = np.zeros((len(intervals)-1, len(accs)), dtype=int)
+j_mat = np.zeros((len(intervals)-1, len(accs)), dtype=int)
 
 vars = {}
 for t in range(len(intervals)-1):
     vars[t] = Ivars(t)
-    i = 0
-    j = 0
+    i = 1
+    j = 1
     for acc in accs:
         if acc.inNeed[t]:
-            if t not in acc.vars_indexes.keys():
-                acc.vars_indexes[t] = VarsIndexes()
-            acc.vars_indexes[t].inNeedIndex = i
+            i_mat[t, acc.index] = i
             i += 1
             print(acc, acc.delayedFlights[t])
             vars[t].add_in_need(acc)
     for acc in accs:
         if acc.spareCapacity[t]:
-            if t not in acc.vars_indexes.keys():
-                acc.vars_indexes[t] = VarsIndexes()
-            acc.vars_indexes[t].spareIndex = j
+            j_mat[t, acc.index] = j
             vars[t].add_available(acc)
             j += 1
             print(acc, acc.spareCapacity[t])
 
 
-solver = Solver(accs, vars)
-
+solver = Solver(accs, vars, i_mat, j_mat)
+solver.set_constraints()
 
 
 
 print("mandi")
-
 
