@@ -5,7 +5,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from ACC import acc as a
 from Solver.solver import Solver
-
+from Solver.vars import Ivars
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -54,7 +54,7 @@ for acc in df_acc.acc.unique():
     df_d_acc, df_r_acc, df_o_acc, df_m_acc = get_acc_df(acc, df_d_day, df_r_day, df_o_day, df_mc)
     accs.append(a.Acc(acc_index, acc, interval_size, intervals, df_o_acc, df_r_acc, df_d_acc, df_m_acc))
     acc_index += 1
-    print(accs[-1].delayedFlights)
+    # print(accs[-1].delayedFlights)
 
 
 print("vars", sum([sum(acc.inNeed) for acc in accs]))
@@ -67,6 +67,21 @@ print("done", time.time() - comp_time)
 # print(len(solver.matches))
 #
 # solver.set_constraints()
+
+vars = {}
+for t in range(len(intervals)-1):
+    vars[t] = Ivars(t)
+    for acc in accs:
+        if acc.inNeed[t]:
+            print(acc, acc.delayedFlights[t])
+            vars[t].add_in_need(acc)
+    for acc in accs:
+        if acc.spareCapacity[t]:
+            vars[t].add_available(acc)
+            print(acc, acc.spareCapacity[t])
+
+
+print("end")
 
 
 

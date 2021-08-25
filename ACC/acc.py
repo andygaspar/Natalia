@@ -100,7 +100,7 @@ class Acc:
         spare_capacity = np.zeros(len(time_intervals) - 1, dtype=int)
         for i in range(spare_capacity.shape[0]):
             if not self.regulated[i]:
-                spare_capacity[i] = self.max_config - self.sectorsOpen[i]
+                spare_capacity[i] = self.actualCapacity[i] - self.sectorsOpen[i]
 
         return spare_capacity
 
