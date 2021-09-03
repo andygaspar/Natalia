@@ -20,6 +20,8 @@ class Acc:
         self.sector_capacity = round(interval_size * sector_capacity / 60)
         self.spareCapacity = self.make_spare(time_intervals)
 
+        self.spareCapacity_dict = None
+
     @staticmethod
     def get_start_end_conditions(start_time, end_time, df):
         start_into = ((df.start >= start_time) & (df.start < end_time))
