@@ -53,3 +53,11 @@ class Solver:
             k += 1
 
         return indexes
+
+    def get_match(self, acc_A, acc_B):
+        k = 0
+        for match in self.matches:
+            if (acc_A.index == match[0].index and acc_B.index == match[1].index) or \
+                    (acc_B.index == match[0].index and acc_A.index == match[1].index):
+                return k
+
