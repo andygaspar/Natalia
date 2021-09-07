@@ -28,18 +28,21 @@ class Solver:
 
         self.p.addVariable(self.d, self.m)
 
+        self.combinationSolution = None
+        self.delaySolution = None
+        self.collaborations = None
+
     def set_constraints(self):
         # t is the index of the time period
 
         for acc in self.accs:
             for day in range(self.numDays):
                 for t in range(self.intervalsNum):
-                    # no self colab
+                    # no self collaboration
                     self.p.addConstraint(
                         self.d[acc.index, acc.index, day, t] == 0
                     )
             # only one to one collaboration
-            matches = self.get_acc_matches(acc)
             self.p.addConstraint(
                 xp.Sum(self.m[index] for index in self.get_acc_matches(acc)) <= 1
             )
@@ -47,7 +50,6 @@ class Solver:
         for m in self.matches:
             acc_a, acc_b = m[0], m[1]
             # delay transfer only if collaborating
-            pp = self.get_match(acc_a, acc_b)
             self.p.addConstraint(
                 xp.Sum(self.d[acc_a.index, acc_b.index, day, t]
                        for day in range(self.numDays) for t in range(self.intervalsNum)) <=
@@ -80,10 +82,22 @@ class Solver:
         self.set_constraints()
         self.set_objective()
         self.p.solve()
+        print(self.p.getProbStatusString())
 
-        solution = self.p.getSolution(self.m)
-        print(solution)
-        print(self.p.getObjVal())
+        self.combinationSolution = self.p.getSolution(self.m)
+        self.delaySolution = self.p.getSolution(self.d)
+
+        self.collaborations = [self.matches[i] for i in range(len(self.matches))
+                               if np.round(self.combinationSolution[i]) == 1]
+
+    def report(self):
+        # print(self.combinationSolution)
+        print("total delay reduction:", self.p.getObjVal(), "minutes\n")
+        print("optimal collaboration")
+        for c in self.collaborations:
+            print(c[0], c[1])
+
+
 
     def get_acc_matches(self, acc):
         indexes = []
@@ -95,17 +109,16 @@ class Solver:
 
         return indexes
 
-    def get_match(self, acc_A, acc_B):
+    def get_match(self, acc_a, acc_b):
         k = 0
         for match in self.matches:
-            if (acc_A.index == match[0].index and acc_B.index == match[1].index) or \
-                    (acc_B.index == match[0].index and acc_A.index == match[1].index):
+            if (acc_a.index == match[0].index and acc_b.index == match[1].index) or \
+                    (acc_b.index == match[0].index and acc_a.index == match[1].index):
                 return k
+            k += 1
 
-    def get_bound(self, acc_a: Acc, acc_b: Acc, day, t):
-
-        if acc_a.name == "EDMM" and acc_b.name == "EBBU":
-            print(acc_a, acc_b)
+    @staticmethod
+    def get_bound(acc_a: Acc, acc_b: Acc, day, t):
         acc_b_capacity = acc_b.days[day].spareCapacity[t] * acc_b.sector_capacity
         delayed_flights = acc_a.days[day].delayedFlights[t]
 

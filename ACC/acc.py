@@ -106,8 +106,6 @@ class Acc:
                  df_airspace_capacity, df_actual_capacity, df_saturation, df_sector_capacity, only_staffing=False):
 
         self.name = name
-        if self.name == "EDMM":
-            print("ciao")
         self.index = index
         self.sector_capacity = df_sector_capacity.sector_capacity.iloc[0]
         self.days = []

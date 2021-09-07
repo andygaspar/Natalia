@@ -45,14 +45,17 @@ def get_acc_df(a, df_delayed, df_regulation, df_open, df_air_capacity, df_actual
 
 # day
 days = df_open.date.unique()
-days = days[:2]
+# days = days[:10]
 
 comp_time = time.time()
 
 acc_list = df_open.acc.unique()
 accs = []
 acc_index = 0
-for acc in acc_list[:4]:
+
+france_list = [a for a in acc_list if a[:2] == "LF"]
+
+for acc in france_list:
     df_d_acc, df_r_acc, df_o_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc = get_acc_df(acc, df_delayed, df_regulation,
                                                                                        df_open,
                                                                                        df_air_capacity,
@@ -66,19 +69,13 @@ for acc in acc_list[:4]:
 
 # print("vars", sum([sum(acc.days[days.keys()[0]].inNeed) for acc in accs]))
 # print("max delayed", max(acc.maxDelayed for acc in accs))
-print("done", time.time() - comp_time)
+print("setting environment", time.time() - comp_time, "\n")
 
+solving_time = time.time()
 solver = Solver(accs, days)
 solver.run()
 
-print(solver.matches)
-print(len(solver.matches))
-
-solver.set_constraints()
-
-print(solver.p.getProbStatusString())
+print("solving time", time.time() - solving_time, "\n")
 
 
-print(solver.m[0])
-j = solver.m[0]
-solver.p.getObjVal()
+solver.report()
