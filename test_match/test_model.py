@@ -76,8 +76,9 @@ print(len(solver.matches))
 
 solver.set_constraints()
 
+print(solver.p.getProbStatusString())
 
 
-sol = solver.p.getSolution(solver.m)
-
-print(sol)
+print(solver.m[0])
+j = solver.m[0]
+solver.p.getObjVal()

@@ -5,6 +5,8 @@ from ACC.acc import Acc, DailyConfiguration
 
 import numpy as np
 
+xp.controls.outputlog = 0
+
 intervals = [i for i in range(0, 1440, 60)]
 
 
@@ -78,6 +80,10 @@ class Solver:
         self.set_constraints()
         self.set_objective()
         self.p.solve()
+
+        solution = self.p.getSolution(self.m)
+        print(solution)
+        print(self.p.getObjVal())
 
     def get_acc_matches(self, acc):
         indexes = []
