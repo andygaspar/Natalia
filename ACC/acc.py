@@ -6,7 +6,7 @@ time_intervals = [i for i in range(0, 1441, 60)]
 
 class DailyConfiguration:
     def __init__(self, day, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_airspace_capacity, df_actual_capacity, df_saturation, sector_capacity, only_staffing):
+                 df_airspace_capacity, df_actual_capacity, df_saturation, only_staffing):
 
         self.day = day
         self.onlyStaffing = only_staffing
@@ -18,7 +18,6 @@ class DailyConfiguration:
         self.inNeed, self.regulated = self.get_regulated(time_intervals, df_regulation_acc)
         self.delayedFlights = self.get_delayed(time_intervals, df_delayed_acc, df_regulation_acc)
 
-        self.sector_capacity = sector_capacity
         self.spareCapacity = self.make_spare(time_intervals, df_saturation)
 
         self.spareCapacity_dict = None
@@ -103,10 +102,11 @@ class DailyConfiguration:
 class Acc:
 
     def __init__(self, index, name, days, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_airspace_capacity, df_actual_capacity, df_saturation, sector_capacity=30, only_staffing=False):
+                 df_airspace_capacity, df_actual_capacity, df_saturation, df_sector_capacity, only_staffing=False):
 
         self.name = name
         self.index = index
+        self.sector_capacity = df_sector_capacity.sector_capacity.iloc[0]
         self.days = {}
         if self.name == "EGCC":
             print(self.name)
@@ -114,7 +114,7 @@ class Acc:
             df_d_day, df_r_day, df_o_day, df_s_day = self.get_day_df(day, df_delayed_acc, df_regulation_acc,
                                                                      df_open_acc, df_saturation)
             self.days[day] = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
-                                                df_actual_capacity, df_s_day, sector_capacity, only_staffing)
+                                                df_actual_capacity, df_s_day, only_staffing)
 
     def get_day_df(self, d, df_delayed, df_regulation, df_open, df_saturation):
         df_d_d = df_delayed[df_delayed.Date == d]
