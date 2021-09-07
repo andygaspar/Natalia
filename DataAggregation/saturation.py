@@ -2,14 +2,12 @@ import pandas as pd
 import numpy as np
 
 
-def get_saturation_df(tolerance, save=False):
+def get_saturation_df(threshold, save=False):
 
     df_sat = pd.read_csv("RowData/saturations.csv")
     df_sat.fillna(value=np.nan, inplace=True)
 
     accs = []
-
-    threshold = 40
 
     for acc in df_sat.ID:
         if acc == "ENOSECTA":
@@ -37,7 +35,6 @@ def get_saturation_df(tolerance, save=False):
             df_acc_day = df_acc[df_acc.Date == date]
             num = 0
             for i in intervals:
-                n_sectors = 0
                 df_acc_interval = df_acc_day[i]
                 num_available = df_acc_interval[df_acc_interval < threshold].shape[0]
                 aggregated_saturations = aggregated_saturations.append(
@@ -46,6 +43,6 @@ def get_saturation_df(tolerance, save=False):
         j+=1
 
     if save:
-        aggregated_saturations.to_csv("RowData/saturation_aggregated_"+tolerance+".csv", index_label=False, index=False)
+        aggregated_saturations.to_csv("RowData/saturation_aggregated_"+threshold+".csv", index_label=False, index=False)
 
     return aggregated_saturations

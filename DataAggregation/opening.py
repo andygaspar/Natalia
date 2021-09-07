@@ -55,3 +55,5 @@ aggregated_open_schemes.to_csv("RowData/opening_aggregated.csv", index_label=Fal
 
 
 
+
+

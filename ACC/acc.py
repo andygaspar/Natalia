@@ -1,23 +1,24 @@
 import numpy as np
 import random
 
+time_intervals = [i for i in range(0, 1441, 60)]
 
-class Acc:
-    def __init__(self, index, name, interval_size, time_intervals, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_airspace_capacity, df_actual_capacity, df_saturation, sector_capacity=30, only_staffing=False):
 
-        self.index = index
-        self.name = name
+class DailyConfiguration:
+    def __init__(self, day, df_open_acc, df_regulation_acc, df_delayed_acc,
+                 df_airspace_capacity, df_actual_capacity, df_saturation, sector_capacity, only_staffing):
+
+        self.day = day
         self.onlyStaffing = only_staffing
         self.maxDelayed = 0
         self.sectorsOpen = self.get_sectors_open(time_intervals, df_open_acc)
         self.airspaceCapacity = df_airspace_capacity.capacity.iloc[0]
-        self.availableCapacity = self.airspaceCapacity - self.sectorsOpen
         self.actualCapacity = self.get_actual_capacity(time_intervals, df_actual_capacity)
+        self.availableCapacity = self.actualCapacity - self.sectorsOpen
         self.inNeed, self.regulated = self.get_regulated(time_intervals, df_regulation_acc)
         self.delayedFlights = self.get_delayed(time_intervals, df_delayed_acc, df_regulation_acc)
 
-        self.sector_capacity = round(interval_size * sector_capacity / 60)
+        self.sector_capacity = sector_capacity
         self.spareCapacity = self.make_spare(time_intervals, df_saturation)
 
         self.spareCapacity_dict = None
@@ -35,36 +36,36 @@ class Acc:
         return df_open_acc.n_sectors.to_numpy()
 
     def get_actual_capacity(self, time_intervals, df_actual_capacity):
-        return df_actual_capacity
+        times = df_actual_capacity.iloc[0].to_numpy()
+        return times[1:]
 
     def get_delayed(self, time_intervals, df_delayed_acc, df_regulation_acc):
-        # if self.onlyStaffing:
-        #     df_in_need = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
-        # else:
-        #     df_in_need = df_regulation_acc[
-        #         (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
-        # delays = np.zeros(len(time_intervals) - 1, dtype=int)
-        # for regulation in df_in_need.Regulation:
-        #     df_staff = df_in_need[df_in_need.Regulation == regulation]
-        #     df_del = df_delayed_acc[df_delayed_acc.MPR == regulation]
-        #     delays_reg = df_del["Total Delay"].sort_values(ascending=False).to_numpy()
-        #     start = df_staff.iloc[0].start
-        #     end = df_staff.iloc[0].end
-        #     delayed_time = np.array([start + (end - start) * i / delays_reg.shape[0]
-        #                              for i in range(delays_reg.shape[0])])
-        #     num_delayed_per_interval = np.array([
-        #         delays_reg[np.where((time_intervals[i] <= delayed_time)
-        #                             & (delayed_time < time_intervals[i + 1]))].shape[0]
-        #         for i in range(len(time_intervals) - 1)])
-        #     if max(num_delayed_per_interval) > self.maxDelayed:
-        #         self.maxDelayed = max(num_delayed_per_interval)
-        #     delays_per_interval = np.array([
-        #         sum(delays_reg[np.where((time_intervals[i] <= delayed_time) & (delayed_time < time_intervals[i + 1]))])
-        #         for i in range(len(time_intervals) - 1)])
-        #     delays += delays_per_interval
-        #
-        # return delays
-        return None
+        if self.onlyStaffing:
+            df_in_need = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
+        else:
+            df_in_need = df_regulation_acc[
+                (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
+        delays = np.zeros(len(time_intervals) - 1, dtype=int)
+        for regulation in df_in_need.Regulation:
+            df_staff = df_in_need[df_in_need.Regulation == regulation]
+            df_del = df_delayed_acc[df_delayed_acc.Regulation == regulation]
+            delays_reg = df_del["Delay flight"].sort_values(ascending=False).to_numpy()
+            start = df_staff.iloc[0].start
+            end = df_staff.iloc[0].end
+            delayed_time = np.array([start + (end - start) * i / delays_reg.shape[0]
+                                     for i in range(delays_reg.shape[0])])
+            num_delayed_per_interval = np.array([
+                delays_reg[np.where((time_intervals[i] <= delayed_time)
+                                    & (delayed_time < time_intervals[i + 1]))].shape[0]
+                for i in range(len(time_intervals) - 1)])
+            if max(num_delayed_per_interval) > self.maxDelayed:
+                self.maxDelayed = max(num_delayed_per_interval)
+            delays_per_interval = np.array([
+                sum(delays_reg[np.where((time_intervals[i] <= delayed_time) & (delayed_time < time_intervals[i + 1]))])
+                for i in range(len(time_intervals) - 1)])
+            delays += delays_per_interval
+
+        return delays
 
     def get_regulated(self, time_intervals, df_regulation_acc):
         in_need = np.zeros(len(time_intervals) - 1, dtype=bool)
@@ -91,9 +92,37 @@ class Acc:
         for i in range(spare_capacity.shape[0]):
             if not self.regulated[i]:
                 spare_capacity[i] = df_saturation[df_saturation.start == time_intervals[i]].n_sectors.iloc[0] \
-                                    + self.airspaceCapacity - self.sectorsOpen[i]
+                                    + self.availableCapacity[i]
 
         return spare_capacity
+
+    def __repr__(self):
+        return self.day
+
+
+class Acc:
+
+    def __init__(self, index, name, days, df_open_acc, df_regulation_acc, df_delayed_acc,
+                 df_airspace_capacity, df_actual_capacity, df_saturation, sector_capacity=30, only_staffing=False):
+
+        self.name = name
+        self.index = index
+        self.days = {}
+        if self.name == "EGCC":
+            print(self.name)
+        for day in days:
+            df_d_day, df_r_day, df_o_day, df_s_day = self.get_day_df(day, df_delayed_acc, df_regulation_acc,
+                                                                     df_open_acc, df_saturation)
+            self.days[day] = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
+                                                df_actual_capacity, df_s_day, sector_capacity, only_staffing)
+
+    def get_day_df(self, d, df_delayed, df_regulation, df_open, df_saturation):
+        df_d_d = df_delayed[df_delayed.Date == d]
+        df_r_d = df_regulation[df_regulation.Date == d]
+        df_o_d = df_open[df_open.date == d]
+        df_s_d = df_saturation[df_saturation.date == d]
+
+        return df_d_d, df_r_d, df_o_d, df_s_d
 
     def __repr__(self):
         return self.name
