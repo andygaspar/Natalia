@@ -44,27 +44,16 @@ class DailyConfiguration:
         else:
             df_in_need = df_regulation_acc[
                 (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
-        delays = np.zeros(len(time_intervals) - 1, dtype=int)
+        delayed = {}
         for regulation in df_in_need.Regulation:
-            df_staff = df_in_need[df_in_need.Regulation == regulation]
             df_del = df_delayed_acc[df_delayed_acc.Regulation == regulation]
-            delays_reg = df_del["Delay flight"].sort_values(ascending=False).to_numpy()
-            start = df_staff.iloc[0].start
-            end = df_staff.iloc[0].end
-            delayed_time = np.array([start + (end - start) * i / delays_reg.shape[0]
-                                     for i in range(delays_reg.shape[0])])
-            num_delayed_per_interval = np.array([
-                delays_reg[np.where((time_intervals[i] <= delayed_time)
-                                    & (delayed_time < time_intervals[i + 1]))].shape[0]
-                for i in range(len(time_intervals) - 1)])
-            if max(num_delayed_per_interval) > self.maxDelayed:
-                self.maxDelayed = max(num_delayed_per_interval)
-            delays_per_interval = np.array([
-                sum(delays_reg[np.where((time_intervals[i] <= delayed_time) & (delayed_time < time_intervals[i + 1]))])
-                for i in range(len(time_intervals) - 1)])
-            delays += delays_per_interval
 
-        return delays
+            for i in range(len(time_intervals) - 1):
+                delays = df_del[(time_intervals[i] <= df_del.regulation_time) & 
+                                (df_del.regulation_time < time_intervals[i+1])]["Delay flight"]
+                delayed[time_intervals[i]] = np.sort(delays)[::-1]
+
+        return delayed
 
     def get_regulated(self, time_intervals, df_regulation_acc):
         in_need = np.zeros(len(time_intervals) - 1, dtype=bool)
