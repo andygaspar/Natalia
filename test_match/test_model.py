@@ -52,7 +52,7 @@ comp_time = time.time()
 acc_list = df_open.acc.unique()
 accs = []
 acc_index = 0
-for acc in acc_list:
+for acc in acc_list[:4]:
     df_d_acc, df_r_acc, df_o_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc = get_acc_df(acc, df_delayed, df_regulation,
                                                                                        df_open,
                                                                                        df_air_capacity,
@@ -68,9 +68,16 @@ for acc in acc_list:
 # print("max delayed", max(acc.maxDelayed for acc in accs))
 print("done", time.time() - comp_time)
 
-# solver = Solver(accs, intervals)
-#
-# print(solver.matches)
-# print(len(solver.matches))
-#
-# solver.set_constraints()
+solver = Solver(accs, days)
+solver.run()
+
+print(solver.matches)
+print(len(solver.matches))
+
+solver.set_constraints()
+
+
+
+sol = solver.p.getSolution(solver.m)
+
+print(sol)
