@@ -16,11 +16,13 @@ for tolerance in [20, 30, 40]:
     df_delayed = pd.read_csv("RowData/delayed_flights.csv")
     df_regulation = pd.read_csv("RowData/regulations.csv")
     df_open = pd.read_csv("RowData/opening_aggregated.csv")
-    df_open = df_open[~df_open.acc.isin(["EHMC", "EYKA", "EYPA", "EYSA", "EYVI", "LHKR", "UMKK", "UMMV"])]  # not considered
+    df_open = df_open[
+        ~df_open.acc.isin(["EHMC", "EYKA", "EYPA", "EYSA", "EYVI", "LHKR", "UMKK", "UMMV", "EGCC"])]
     df_air_capacity = pd.read_csv("RowData/airspace_capacity.csv")
     df_actual_capacity = pd.read_csv("RowData/actual_capacity.csv")
     df_saturation = saturation.get_saturation_df(tolerance)
-    # df_saturation = pd.read_csv("RowData/saturation_aggregated.csv")
+    df_sector_capacity = pd.read_csv("RowData/sector_capacity.csv")
+    # df_saturation = saturation.get_saturation_df(tolerance)
     # df_acc = pd.read_csv("RowData/accslist.csv")
     # df_acc = pd.read_csv("RowData/listSmall.csv")
 
@@ -29,15 +31,17 @@ for tolerance in [20, 30, 40]:
     df_regulation.to_csv("RowData/regulations.csv", index_label=False, index=False)
 
 
-    def get_acc_df(a, df_delayed, df_regulation, df_open, df_air_capacity, df_actual_capacity, df_sat_day):
+    def get_acc_df(a, df_delayed, df_regulation, df_open, df_air_capacity, df_actual_capacity, df_saturation,
+                   df_sec_cap):
         df_r_acc = df_regulation[df_regulation.acc == a]
-        df_d_acc = df_delayed[df_delayed.MPR.isin(df_r_acc.Regulation)]
+        df_d_acc = df_delayed[df_delayed.Regulation.isin(df_r_acc.Regulation)]
         df_o_acc = df_open[df_open.acc == a]
         df_c_acc = df_air_capacity[df_air_capacity.acc == a]
         df_a_acc = df_actual_capacity[df_actual_capacity.acc == a]
-        df_s_acc = df_sat_day[df_sat_day.acc == a]
+        df_s_acc = df_saturation[df_saturation.acc == a]
+        df_sc_acc = df_sec_cap[df_sec_cap.acc == a]
 
-        return df_d_acc, df_r_acc, df_o_acc, df_c_acc, df_a_acc, df_s_acc
+        return df_d_acc, df_r_acc, df_o_acc, df_c_acc, df_a_acc, df_s_acc, df_sc_acc
 
 
     # day
@@ -50,11 +54,14 @@ for tolerance in [20, 30, 40]:
     accs = []
     acc_index = 0
     for acc in acc_list:
-
-        df_d_acc, df_r_acc, df_o_acc, df_m_acc, df_a_acc, df_s_acc = get_acc_df(acc, df_delayed, df_regulation, df_open,
-                                                                                df_air_capacity, df_actual_capacity,
-                                                                                df_saturation)
-        accs.append(a.Acc(acc_index, acc, days, df_o_acc, df_r_acc, df_d_acc, df_m_acc, df_a_acc, df_s_acc))
+        df_d_acc, df_r_acc, df_o_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc = get_acc_df(acc, df_delayed,
+                                                                                           df_regulation,
+                                                                                           df_open,
+                                                                                           df_air_capacity,
+                                                                                           df_actual_capacity,
+                                                                                           df_saturation,
+                                                                                           df_sector_capacity)
+        accs.append(a.Acc(acc_index, acc, days, df_o_acc, df_r_acc, df_d_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc))
         acc_index += 1
         # print(accs[-1].delayedFlights)
 
@@ -73,13 +80,13 @@ for tolerance in [20, 30, 40]:
     spare_df = pd.DataFrame(columns=["acc", "frequency", "spare_mean", "spare_std"])
 
     for acc in accs:
-        print(acc.days.keys())
+        print(acc.days_dict.keys())
 
-        spare = np.array([sp_cap for day in acc.days.keys() for sp_cap in acc.days[day].spareCapacity[7:21]])
+        spare = np.array([sp_cap for day in acc.days_dict.keys() for sp_cap in acc.days_dict[day].spareCapacity[7:21]])
         frequency = spare[spare > 0].shape[0]
         mean = np.mean(spare[spare > 0]) if frequency > 0 else 0
         std = np.std(spare[spare > 0]) if frequency > 0 else 0
-        spare_df = spare_df.append({"acc": acc.name, "frequency": mean,
+        spare_df = spare_df.append({"acc": acc.name, "frequency": frequency,
                                     "spare_mean": mean,
                                     "spare_std": std}, ignore_index=True)
 
