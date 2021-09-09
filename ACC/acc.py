@@ -40,6 +40,11 @@ class DailyConfiguration:
         times = df_actual_capacity.iloc[0].to_numpy()
         return times[1:]
 
+    def set_available(self):
+        available = self.actualCapacity - self.sectorsOpen
+        available[available < 0] = 0
+        return available
+
     def get_delayed(self, df_delayed_acc, df_regulation_acc):
         if self.onlyStaffing:
             df_in_need = df_regulation_acc[df_regulation_acc.Reason == 'ATC Staffing']
@@ -57,8 +62,6 @@ class DailyConfiguration:
                 delayed_interval = np.sort(delays)[::-1]
                 delayed.append(delayed_interval)
                 delayed_dict[time_intervals[i]] = delayed_interval
-
-
 
         return delayed
 
@@ -94,10 +97,6 @@ class DailyConfiguration:
     def __repr__(self):
         return self.day
 
-    def set_available(self):
-        available = self.actualCapacity - self.sectorsOpen
-        available[available < 0] = 0
-        return available
 
 
 class Acc:

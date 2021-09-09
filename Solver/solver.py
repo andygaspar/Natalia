@@ -91,13 +91,10 @@ class Solver:
                                if np.round(self.combinationSolution[i]) == 1]
 
     def report(self):
-        # print(self.combinationSolution)
         print("total delay reduction:", self.p.getObjVal(), "minutes\n")
         print("optimal collaboration")
         for c in self.collaborations:
             print(c[0], c[1])
-
-
 
     def get_acc_matches(self, acc):
         indexes = []
