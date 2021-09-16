@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 import matplotlib.pyplot as plt
 from ACC import acc as a
+from ACC import set_accs
 from DataAggregation import saturation
 from Solver.solver import Solver
 
@@ -31,41 +32,19 @@ df_regulation["acc"] = df_regulation.Airspace.apply(lambda a: a[:4])
 df_regulation.to_csv("RowData/regulations.csv", index_label=False, index=False)
 
 
-def get_acc_df(a, df_delayed, df_regulation, df_open, df_air_capacity, df_actual_capacity, df_saturation, df_sec_cap):
-    df_r_acc = df_regulation[df_regulation.acc == a]
-    df_d_acc = df_delayed[df_delayed.Regulation.isin(df_r_acc.Regulation)]
-    df_o_acc = df_open[df_open.acc == a]
-    df_c_acc = df_air_capacity[df_air_capacity.acc == a]
-    df_a_acc = df_actual_capacity[df_actual_capacity.acc == a]
-    df_s_acc = df_saturation[df_saturation.acc == a]
-    df_sc_acc = df_sec_cap[df_sec_cap.acc == a]
-
-    return df_d_acc, df_r_acc, df_o_acc, df_c_acc, df_a_acc, df_s_acc, df_sc_acc
-
-
 # day
 days = df_open.date.unique()
-# days = days[:10]
+
 
 comp_time = time.time()
 
 acc_list = df_open.acc.unique()
-accs = []
-acc_index = 0
 
-fra_ger_list = [a for a in acc_list if a[:2] == "LF" or a[:2] == "ED"]
+#  list of accs of interest
+fra_ger_list = [a for a in acc_list if a[:2] == "ED"]
 
-for acc in acc_list:
-    df_d_acc, df_r_acc, df_o_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc = get_acc_df(acc, df_delayed, df_regulation,
-                                                                                       df_open,
-                                                                                       df_air_capacity,
-                                                                                       df_actual_capacity,
-                                                                                       df_saturation,
-                                                                                       df_sector_capacity)
-    accs.append(a.Acc(acc_index, acc, days, df_o_acc, df_r_acc, df_d_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc))
-    acc_index += 1
-
-    # print(accs[-1].delayedFlights)
+accs = set_accs.make_acc_list(fra_ger_list, df_delayed, df_regulation, df_open, df_air_capacity, df_actual_capacity,
+                              df_saturation, df_sector_capacity, days)
 
 # print("vars", sum([sum(acc.days[days.keys()[0]].inNeed) for acc in accs]))
 # print("max delayed", max(acc.maxDelayed for acc in accs))
@@ -78,4 +57,3 @@ solver.run()
 print("solving time", time.time() - solving_time, "\n")
 
 solver.report()
-

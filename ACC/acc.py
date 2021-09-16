@@ -2,6 +2,7 @@ import numpy as np
 import random
 
 time_intervals = [i for i in range(0, 1441, 60)]
+num_intervals = len(time_intervals) - 1
 
 
 class DailyConfiguration:
@@ -17,6 +18,7 @@ class DailyConfiguration:
         self.availableCapacity = self.set_available()
         self.inNeed, self.regulated = self.get_regulated(df_regulation_acc)
         self.delayedFlights = self.get_delayed(df_delayed_acc, df_regulation_acc)
+        self.delays = self.compute_delay()
 
         self.spareCapacity = self.make_spare(df_saturation)
 
@@ -57,8 +59,8 @@ class DailyConfiguration:
             df_del = df_delayed_acc[df_delayed_acc.Regulation == regulation]
 
             for i in range(len(time_intervals) - 1):
-                delays = df_del[(time_intervals[i] <= df_del.regulation_time) & 
-                                (df_del.regulation_time < time_intervals[i+1])]["Delay flight"]
+                delays = df_del[(time_intervals[i] <= df_del.regulation_time) &
+                                (df_del.regulation_time < time_intervals[i + 1])]["Delay flight"]
                 delayed_interval = np.sort(delays)[::-1]
                 delayed.append(delayed_interval)
                 delayed_dict[time_intervals[i]] = delayed_interval
@@ -79,9 +81,7 @@ class DailyConfiguration:
                 regulated[i] = True if df_reg.shape[0] > 0 else False
 
                 df_staff = self.get_start_end_conditions(time_intervals[i], time_intervals[i + 1], df_in_need)
-                in_need[i] = True if df_staff.shape[0] > 0 else False
-
-            # TO DO check airspace capacity
+                in_need[i] = True if df_staff.shape[0] > 0 and self.sectorsOpen[i] < self.airspaceCapacity else False
 
         return in_need, regulated
 
@@ -97,6 +97,14 @@ class DailyConfiguration:
     def __repr__(self):
         return self.day
 
+    def compute_delay(self):
+        delays = np.zeros(len(time_intervals) - 1)
+        for i in range(len(time_intervals) - 1):
+
+            delays[i] = sum(self.delayedFlights[i])
+
+
+        return delays
 
 
 class Acc:
@@ -110,15 +118,20 @@ class Acc:
         self.days = []
         self.days_dict = {}
         for day in days:
+            if day == "1/7/2019":
+                print(day)
             df_d_day, df_r_day, df_o_day, df_s_day = self.get_day_df(day, df_delayed_acc, df_regulation_acc,
                                                                      df_open_acc, df_saturation)
             daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
-                                                df_actual_capacity, df_s_day, only_staffing)
+                                              df_actual_capacity, df_s_day, only_staffing)
             self.days.append(daily_config)
 
             self.days_dict[day] = daily_config
 
-    def get_day_df(self, d, df_delayed, df_regulation, df_open, df_saturation):
+        self.totalDelay = sum([day.delays[j] for j in range(num_intervals) for day in self.days])
+
+    @staticmethod
+    def get_day_df(d, df_delayed, df_regulation, df_open, df_saturation):
         df_d_d = df_delayed[df_delayed.Date == d]
         df_r_d = df_regulation[df_regulation.Date == d]
         df_o_d = df_open[df_open.date == d]
