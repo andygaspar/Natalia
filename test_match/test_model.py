@@ -57,3 +57,58 @@ solver.run()
 print("solving time", time.time() - solving_time, "\n")
 
 solver.report()
+
+print(sum(acc.totalDelay for acc in accs))
+
+
+d = solver.delaySolution
+
+k = 0
+
+# for j in range(len(d)):
+#     for i in range(len(d[j])):
+#         for g in range(len(d[j][i])):
+#             for t in range(len(d[j][i][g])):
+#                 if d[j][i][g][t] > 0.5:
+#                     if not accs[j].days[g].inNeed[t]:
+#                         print("an issue")
+#                     if accs[i].days[g].regulated[t]:
+#                         print("an issue")
+#                     # print(d[j][i][g][t])
+#                     # print(accs[j].days[g].delayedFlights[t], sum(accs[j].days[g].delayedFlights[t]))
+#                     # print(accs[j].days[g].delays[t])
+#                     # print(d[i][j][g][t])
+#                     # print("\n")
+#                     if d[i][j][g][t] > 0.5:
+#                         print("issue")
+#
+np.sum(d[2])
+tot = 0
+for i in range(len(d[2])):
+    for g in range(len(d[2][i])):
+        for t in range(len(d[2][i][g])):
+            if d[2][i][g][t] > 0.5:
+                if not accs[2].days[g].inNeed[t]:
+                    print("an issue")
+                if accs[i].days[g].regulated[t]:
+                    print("an issue")
+                # print(d[2][i][g][t])
+                # print(accs[2].days[g].delayedFlights[t], sum(accs[2].days[g].delayedFlights[t]))
+                # print(accs[2].days[g].delays[t])
+                tot += accs[2].days[g].delays[t]
+                # print(d[i][2][g][t], accs[i].days[g].spareCapacity[t]*accs[i].sector_capacity)
+                # print("\n")
+                print(i)
+                if d[i][2][g][t] > 0.5:
+                    print("issue")
+
+
+accs[2].days[0].delays
+
+solver.combinationSolution
+
+solver.get_match(accs[2], accs[0])
+accs
+
+
+np.sum([d[2, 0, day, t] for day in range(len(days)) for t in range(24)])

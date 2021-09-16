@@ -56,6 +56,12 @@ class Solver:
                 self.m[self.get_match(acc_a, acc_b)] * 10_000_000
             )
 
+            self.p.addConstraint(
+                xp.Sum(self.d[acc_b.index, acc_a.index, day, t]
+                       for day in range(self.numDays) for t in range(self.intervalsNum)) <=
+                self.m[self.get_match(acc_a, acc_b)] * 10_000_000
+            )
+
         for acc_a in self.accs:
             for acc_b in self.accs:
                 if acc_a.index != acc_b.index:
