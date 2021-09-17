@@ -132,6 +132,10 @@ class Acc:
 
         self.totalDelay = sum([day.totalDailyDelay for day in self.days])
 
+        self.reduction = 0
+        self.newDelay = None
+        self.collaborations = 0
+
     @staticmethod
     def get_day_df(d, df_delayed, df_regulation, df_open, df_saturation):
         df_d_d = df_delayed[df_delayed.Date == d]

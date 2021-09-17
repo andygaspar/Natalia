@@ -1,4 +1,6 @@
 from itertools import combinations
+
+import pandas as pd
 import xpress as xp
 from typing import List
 from ACC.acc import Acc, DailyConfiguration
@@ -27,6 +29,11 @@ class Solver:
         self.m = np.array([xp.var(vartype=xp.binary) for _ in self.matches])
 
         self.p.addVariable(self.d, self.m)
+
+        self.initialDelay = sum(acc.totalDelay for acc in self.accs)
+        self.reduction = None
+        self.finalDelay = None
+        self.services = None
 
         self.combinationSolution = None
         self.delaySolution = None
@@ -92,15 +99,23 @@ class Solver:
 
         self.combinationSolution = self.p.getSolution(self.m)
         self.delaySolution = self.p.getSolution(self.d)
+        self.reduction = self.p.getObjVal()
 
         self.collaborations = [self.matches[i] for i in range(len(self.matches))
                                if np.round(self.combinationSolution[i]) == 1]
 
+        self.set_solution()
+
     def report(self):
-        print("total delay reduction:", self.p.getObjVal(), "minutes\n")
+        print("initial delay:", self.initialDelay, "minutes")
+        print("final delay:", self.finalDelay, "minutes")
+        print("total delay reduction:", self.reduction, "minutes\n")
         print("optimal collaboration")
         for c in self.collaborations:
             print(c[0], c[1])
+            print("acc", "initial", "final", "reduction", "num colab")
+            print(c[0], c[0].totalDelay, c[0].newDelay, c[0].reduction, c[0].collaborations)
+            print(c[1], c[1].totalDelay, c[1].newDelay, c[1].reduction, c[1].collaborations, "\n")
 
     def get_acc_matches(self, acc):
         indexes = []
@@ -126,3 +141,42 @@ class Solver:
         delayed_flights = acc_a.days[day].delayedFlights[t]
 
         return sum(delayed_flights[: min([len(delayed_flights), acc_b_capacity])])
+
+    def set_solution(self):
+
+        for acc_a in self.accs:
+            for acc_b in self.accs:
+                for d in range(self.numDays):
+                    for t in range(self.intervalsNum):
+                        if self.delaySolution[acc_a.index][acc_b.index][d][t] > 0.5:
+                            acc_a.reduction += self.delaySolution[acc_a.index][acc_b.index][d][t]
+                            acc_a.collaborations += 1
+                            self.services += 1
+
+            acc_a.newDelay = acc_a.totalDelay - acc_a.reduction
+
+        self.finalDelay = self.initialDelay - self.reduction
+
+    def make_df(self, name, tolerance, save=False):
+        df = pd.DataFrame(columns=["acc", "collaboration", "initial delay", "final delay", "reduction",
+                                   "services provided", "services received", "saturation tolerance"])
+        df = df.append({"acc": "total", "collaboration": "", "initial delay": self.initialDelay,
+                        "final delay": self.finalDelay, "reduction": self.reduction,
+                        "services provided": self.services, "services received": self.services,
+                        "saturation tolerance": tolerance})
+
+        for c in self.collaborations:
+            acc_a, acc_b = c[0], c[1]
+            df = df.append({"acc": acc_a.name, "collaboration": acc_b.name, "initial delay": acc_a.totalDelay,
+                            "final delay": acc_a.newDelay, "reduction": acc_a.reduction,
+                            "services provided": acc_b.collaborations, "services received": acc_a.collaborations,
+                            "saturation tolerance": tolerance})
+            df = df.append({"acc": acc_b.name, "collaboration": acc_a.name, "initial delay": acc_b.totalDelay,
+                            "final delay": acc_b.newDelay, "reduction": acc_b.reduction,
+                            "services provided": acc_a.collaborations, "services received": acc_b.collaborations,
+                            "saturation tolerance": tolerance})
+
+        if save:
+            df.to_csv("Results/" + name + "_" + str(tolerance) + ".csv", index_label=False, index=False)
+
+        print(df)
