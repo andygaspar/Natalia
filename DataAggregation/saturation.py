@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def get_saturation_df(threshold, save=False):
+def get_saturation_df(threshold, acc_list=None, save=False):
 
     df_sat = pd.read_csv("RowData/saturations.csv")
     df_sat.fillna(value=np.nan, inplace=True)
@@ -18,6 +18,10 @@ def get_saturation_df(threshold, save=False):
             accs.append(acc[:4])
 
     df_sat["acc"] = accs
+
+    if acc_list is not None:
+        df_sat = df_sat[df_sat.acc.isin(acc_list)]
+
     aggregated_saturations = pd.DataFrame(columns=["acc", "date", "start", "n_sectors"])
 
     acc_list = df_sat.acc.unique()
@@ -26,10 +30,10 @@ def get_saturation_df(threshold, save=False):
     intervals = list(df_sat.columns)[7:-1]
     intervals_num = [i for i in range(0, 1441, 60)]
 
-    print(acc_list.shape[0])
+    # print(acc_list.shape[0])
     j = 0
     for acc in acc_list:
-        print(acc, j)
+        # print(acc, j)
         df_acc = df_sat[df_sat.acc == acc]
         for date in days:
             df_acc_day = df_acc[df_acc.Date == date]

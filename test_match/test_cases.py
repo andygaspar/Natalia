@@ -5,7 +5,7 @@ cases = {
     'GERMANY_AUSTRIA': ["EDWW", "EDUU", "EDMM", 'EDGG', 'LOVV'],
     'GERMANY_SWITS': ["EDWW", "EDUU", "EDMM", 'EDGG', 'LSAG', 'LSAZ'],
     'GERMANY_MAASTR': ["EDWW", "EDUU", "EDMM", 'EDGG', 'EDYY'],
-    'GERMANY_AMSETER': ["EDWW", "EDUU", "EDMM", 'EDGG', 'EMAA'],
+    # 'GERMANY_AMSETER': ["EDWW", "EDUU", "EDMM", 'EDGG', 'EMAA'],
     'GERMANY_FRANCE': ["EDWW", "EDUU", "EDMM", 'EDGG', 'LFBB', 'LFRR', 'LFMM', 'LFFF', 'LFEE'],
     'FRANCE': ['LFBB', 'LFRR', 'LFMM', 'LFFF', 'LFEE'],
     'FRANCE_SWITS': ['LFBB', 'LFRR', 'LFMM', 'LFFF', 'LFEE', 'LSAG', 'LSAZ'],
