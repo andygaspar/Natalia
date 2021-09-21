@@ -1,7 +1,10 @@
+import copy
+
 import numpy as np
 import random
 
 time_intervals = [i for i in range(0, 1441, 60)]
+time_intervals[-1] = 1441
 num_intervals = len(time_intervals) - 1
 
 
@@ -57,17 +60,33 @@ class DailyConfiguration:
                 (df_regulation_acc.Reason == 'ATC Staffing') | (df_regulation_acc.Reason == "ATC Capacity")]
         delayed = [np.array([]) for _ in range(num_intervals)]
         delayed_dict = {}
+
+        a = df_delayed_acc[df_delayed_acc.Regulation.isin(df_regulation_acc.Regulation)]
+
         for regulation in df_in_need.Regulation:
             df_del = df_delayed_acc[df_delayed_acc.Regulation == regulation]
+
+            size = df_del.shape[0]
+            tot_found = 0
 
             for i in range(num_intervals):
                 delays = df_del[(time_intervals[i] <= df_del.regulation_time) &
                                 (df_del.regulation_time < time_intervals[i + 1])]["Delay flight"]
                 delayed[i] = np.append(delayed[i], delays)
+                tot_found += delays.shape[0]
+
+            if size != tot_found:
+                print("tac")
 
         for i in range(num_intervals):
             delayed[i] = np.sort(delayed[i])[::-1]
             delayed_dict[i] = delayed[i]
+
+        aa = sum(a["Delay flight"])
+        b = sum(sum(delayed[i]) for i in range(num_intervals))
+
+        if aa != b:
+            print("here")
 
         return delayed
 
@@ -121,16 +140,25 @@ class Acc:
         self.sector_capacity = df_sector_capacity.sector_capacity.iloc[0]
         self.days = []
         self.days_dict = {}
+        print(self.name)
+        print(sum(df_regulation_acc.Delay))
+        print(sum(df_delayed_acc["Delay flight"]))
+        print(days)
+        print(df_regulation_acc[~df_regulation_acc.Date.isin(days)])
         for day in days:
             df_d_day, df_r_day, df_o_day, df_s_day = self.get_day_df(day, df_delayed_acc, df_regulation_acc,
                                                                      df_open_acc, df_saturation)
-            daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
+            # daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
+            #                                   df_actual_capacity, df_s_day, only_staffing)
+
+            daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_delayed_acc, df_airspace_capacity,
                                               df_actual_capacity, df_s_day, only_staffing)
             self.days.append(daily_config)
 
             self.days_dict[day] = daily_config
 
         self.totalDelay = sum([day.totalDailyDelay for day in self.days])
+        print(self.totalDelay)
 
         self.reduction = 0
         self.newDelay = None
