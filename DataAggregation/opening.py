@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from Funs.fix_date import fix_date
 
 def fix_hour_start(df):
     return [time//60 * 60 for time in df.start]
@@ -49,9 +49,10 @@ for acc in mother_accs:
                 df_cluster = df_clusters[df_clusters.acc == c]
                 n_sectors += max(df_cluster.n_sectors)
             aggregated_open_schemes = aggregated_open_schemes.append(
-                {"acc": acc, "date": date, "start":intervals[i], "n_sectors": n_sectors}, ignore_index=True)
+                {"acc": acc, "date": date, "start": intervals[i], "n_sectors": n_sectors}, ignore_index=True)
 
-aggregated_open_schemes.to_csv("RowData/opening_aggregated.csv", index_label=False, index=False)
+aggregated_open_schemes.date = aggregated_open_schemes.date.apply(fix_date)
+aggregated_open_schemes.to_csv("RowData/opening_aggregated_egcc.csv", index_label=False, index=False)
 
 
 

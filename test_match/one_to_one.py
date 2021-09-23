@@ -22,7 +22,7 @@ df_air_capacity = pd.read_csv("RowData/airspace_capacity.csv")
 df_actual_capacity = pd.read_csv("RowData/actual_capacity.csv")
 df_sector_capacity = pd.read_csv("RowData/sector_capacity.csv")
 
-df_saturation = pd.read_csv("RowData/saturation_aggregated.csv")
+# df_saturation = pd.read_csv("RowData/saturation_aggregated.csv")
 
 # day
 days = df_open.date.unique()
@@ -36,7 +36,7 @@ tolerances = [0, 20, 40]
 for key in test_cases.cases.keys():
     for tolerance in tolerances:
         print(key, tolerance)
-        # df_saturation = saturation.get_saturation_df(tolerance, test_cases.cases[key])
+        df_saturation = saturation.get_saturation_df(tolerance, test_cases.cases[key])
 
         accs = set_accs.make_acc_list(test_cases.cases[key], df_delayed, df_regulation, df_open, df_air_capacity,
                                       df_actual_capacity, df_saturation, df_sector_capacity, days)
@@ -54,23 +54,7 @@ for key in test_cases.cases.keys():
         df = solver.make_df(key, tolerance, df, save=True)
 
 
-# df.to_csv("Results/total.csv", index_label=False, index=False)
+df.to_csv("Results/total.csv", index_label=False, index=False)
 
 
-# import pandas as pd
-#
-# d = pd.read_csv("RowData/sector_capacity.csv")
-#
-# d.sort_values(by="acc", inplace=True)
-
-france = df_regulation[df_regulation.acc.isin(['LFBB']) ]#, 'LFRR', 'LFMM', 'LFFF', 'LFEE'])]
-fr = france[(france.Reason == 'ATC Staffing') | (france.Reason == "ATC Capacity")]
-sum(france.Date.unique().shape)
-
-fr_f = df_delayed[df_delayed.Regulation.isin(france.Regulation)]
-sum(fr_f["Delay flight"])
-
-fr_f.Date.unique().shape
-
-b = fr_f.sort_values(by="regulation_time")
 
