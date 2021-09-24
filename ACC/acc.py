@@ -10,9 +10,10 @@ num_intervals = len(time_intervals) - 1
 
 class DailyConfiguration:
     def __init__(self, day, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_airspace_capacity, df_actual_capacity, df_saturation, only_staffing):
+                 df_airspace_capacity, df_actual_capacity, df_saturation, only_staffing, available_correction):
 
         self.day = day
+        self.availableCorrection = available_correction
         self.onlyStaffing = only_staffing
         self.maxDelayed = 0
         self.sectorsOpen = self.get_sectors_open(df_open_acc)
@@ -48,7 +49,7 @@ class DailyConfiguration:
         return times[1:]
 
     def set_available(self):
-        available = self.actualCapacity - self.sectorsOpen
+        available = np.around((self.actualCapacity - self.sectorsOpen) * self.availableCorrection).astype(int)
         available[available < 0] = 0
         return available
 
@@ -61,12 +62,9 @@ class DailyConfiguration:
         delayed = [np.array([]) for _ in range(num_intervals)]
         delayed_dict = {}
 
-        a = df_delayed_acc[df_delayed_acc.Regulation.isin(df_regulation_acc.Regulation)]
-
         for regulation in df_in_need.Regulation:
             df_del = df_delayed_acc[df_delayed_acc.Regulation == regulation]
 
-            size = df_del.shape[0]
             tot_found = 0
 
             for i in range(num_intervals):
@@ -75,18 +73,9 @@ class DailyConfiguration:
                 delayed[i] = np.append(delayed[i], delays)
                 tot_found += delays.shape[0]
 
-            if size != tot_found:
-                print("tac")
-
         for i in range(num_intervals):
             delayed[i] = np.sort(delayed[i])[::-1]
             delayed_dict[i] = delayed[i]
-
-        aa = sum(a["Delay flight"])
-        b = sum(sum(delayed[i]) for i in range(num_intervals))
-
-        if aa != b:
-            print("here")
 
         return delayed
 

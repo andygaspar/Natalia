@@ -32,26 +32,28 @@ df = pd.DataFrame(columns=["acc", "collaboration", "initial delay", "final delay
 comp_time = time.time()
 
 tolerances = [0, 20, 40]
+cap_corrections = [1, 0.95, 0.9]
 
 for key in test_cases.cases.keys():
     for tolerance in tolerances:
-        print(key, tolerance)
-        df_saturation = saturation.get_saturation_df(tolerance, test_cases.cases[key])
+        for cap_correction in cap_corrections:
+            print(key, tolerance)
+            df_saturation = saturation.get_saturation_df(tolerance, test_cases.cases[key])
 
-        accs = set_accs.make_acc_list(test_cases.cases[key], df_delayed, df_regulation, df_open, df_air_capacity,
-                                      df_actual_capacity, df_saturation, df_sector_capacity, days)
+            accs = set_accs.make_acc_list(test_cases.cases[key], df_delayed, df_regulation, df_open, df_air_capacity,
+                                          df_actual_capacity, df_saturation, df_sector_capacity, days, cap_correction)
 
-        # print("vars", sum([sum(acc.days[days.keys()[0]].inNeed) for acc in accs]))
-        # print("max delayed", max(acc.maxDelayed for acc in accs))
-        print("setting environment", time.time() - comp_time, "\n")
+            # print("vars", sum([sum(acc.days[days.keys()[0]].inNeed) for acc in accs]))
+            # print("max delayed", max(acc.maxDelayed for acc in accs))
+            print("setting environment", time.time() - comp_time, "\n")
 
-        solving_time = time.time()
-        solver = Solver(accs, days)
-        solver.run()
+            solving_time = time.time()
+            solver = Solver(accs, days)
+            solver.run()
 
-        print("solving time", time.time() - solving_time, "\n")
+            print("solving time", time.time() - solving_time, "\n")
 
-        df = solver.make_df(key, tolerance, df, save=True)
+            df = solver.make_df(key, tolerance, df, save=True)
 
 
 df.to_csv("Results/total.csv", index_label=False, index=False)

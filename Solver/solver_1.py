@@ -59,9 +59,8 @@ class Solver1:
                     )
 
                     self.p.addConstraint(
-                        xp.Sum(self.x[other.index, acc.index,  day, t] for other in self.accs) <= 1
+                        xp.Sum(self.x[other.index, acc.index, day, t] for other in self.accs) <= 1
                     )
-
 
         for acc_a in self.accs:
             for acc_b in self.accs:
@@ -82,9 +81,6 @@ class Solver1:
                                 self.p.addConstraint(
                                     self.x[acc_a.index, acc_b.index, day, t] == 0
                                 )
-
-
-
 
     def set_objective(self):
         self.p.setObjective(xp.Sum(self.d[acc_a.index, acc_b.index, day, t]
@@ -125,12 +121,12 @@ class Solver1:
 
         self.finalDelay = self.initialDelay - self.reduction
 
-    def make_df(self, name, tolerance, df_tot=None, save=False):
-        columns = ["acc", "saturation tolerance", "initial delay", "final delay", "reduction"] + \
-                  [acc.name for acc in self.accs] + ["case"]
+    def make_df(self, name, tolerance, cap_correction, df_tot=None, save=False):
+        columns = ["acc", "saturation tolerance", "capacity correction" + "initial delay", "final delay", "reduction"] \
+                  + [acc.name for acc in self.accs] + ["case"]
         df = pd.DataFrame(columns=columns)
-        total = ["total"] + [tolerance] + [self.initialDelay] + [self.finalDelay] + [self.reduction] + \
-                ["" for acc in self.accs] + [name]
+        total = ["total"] + [tolerance] + [cap_correction] + [self.initialDelay] + [self.finalDelay] \
+                + [self.reduction] + ["" for _ in self.accs] + [name]
         df = df.append(dict(zip(columns, total)), ignore_index=True)
 
         for acc in self.accs:
@@ -141,12 +137,14 @@ class Solver1:
                 given.append(sum([self.delaySolution[acc.index, other_acc.index, d, t]
                                   for d in range(self.numDays) for t in range(self.intervalsNum)]))
 
-            to_append = [acc.name] + [tolerance] + [acc.totalDelay] + [acc.newDelay] + [acc.reduction] + given + [name]
+            to_append = [acc.name] + [tolerance] + [cap_correction] + [acc.totalDelay] + [acc.newDelay] \
+                        + [acc.reduction] + given + [name]
 
             df = df.append(dict(zip(columns, to_append)), ignore_index=True)
 
         if save:
-            df.to_csv("Results/" + name + "_" + str(tolerance) + ".csv", index_label=False, index=False)
+            df.to_csv("Results/" + name + "_" + str(tolerance) + +str(cap_correction) + ".csv", index_label=False,
+                      index=False)
 
         print(df)
 

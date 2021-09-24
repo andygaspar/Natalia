@@ -157,27 +157,32 @@ class Solver:
 
         self.finalDelay = self.initialDelay - self.reduction
 
-    def make_df(self, name, tolerance, df_tot=None, save=False):
-        df = pd.DataFrame(columns=["acc", "collaboration", "initial delay", "final delay", "reduction",
-                                   "services provided", "services received", "saturation tolerance", "case"])
+    def make_df(self, name, tolerance, cap_correction, df_tot=None, save=False):
+        df = pd.DataFrame(columns=["acc", "collaboration", "capacity correction", "initial delay", "final delay",
+                                   "reduction", "services provided", "services received", "saturation tolerance",
+                                   "case"])
         df = df.append({"acc": "total", "collaboration": "", "initial delay": self.initialDelay,
                         "final delay": self.finalDelay, "reduction": self.reduction,
                         "services provided": self.services, "services received": self.services,
-                        "saturation tolerance": tolerance, 'case': name}, ignore_index=True)
+                        "saturation tolerance": tolerance, "capacity correction": cap_correction, 'case': name},
+                       ignore_index=True)
 
         for c in self.collaborations:
             acc_a, acc_b = c[0], c[1]
             df = df.append({"acc": acc_a.name, "collaboration": acc_b.name, "initial delay": acc_a.totalDelay,
                             "final delay": acc_a.newDelay, "reduction": acc_a.reduction,
                             "services provided": acc_b.collaborations, "services received": acc_a.collaborations,
-                            "saturation tolerance": tolerance, 'case': name}, ignore_index=True)
+                            "saturation tolerance": tolerance, "capacity correction": cap_correction, 'case': name},
+                           ignore_index=True)
             df = df.append({"acc": acc_b.name, "collaboration": acc_a.name, "initial delay": acc_b.totalDelay,
                             "final delay": acc_b.newDelay, "reduction": acc_b.reduction,
                             "services provided": acc_a.collaborations, "services received": acc_b.collaborations,
-                            "saturation tolerance": tolerance, 'case': name}, ignore_index=True)
+                            "saturation tolerance": tolerance, "capacity correction": cap_correction, 'case': name},
+                           ignore_index=True)
 
         if save:
-            df.to_csv("Results/" + name + "_" + str(tolerance) + ".csv", index_label=False, index=False)
+            df.to_csv("Results/" + name + "_" + str(tolerance) + "_" + str(cap_correction) + ".csv", index_label=False,
+                      index=False)
 
         print(df)
 

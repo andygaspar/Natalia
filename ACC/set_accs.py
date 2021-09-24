@@ -14,7 +14,7 @@ def get_acc_df(acc, df_delayed, df_regulation, df_open, df_air_capacity, df_actu
 
 
 def make_acc_list(acc_list, df_delayed, df_regulation, df_open, df_air_capacity, df_actual_capacity, df_saturation,
-                  df_sector_capacity, days):
+                  df_sector_capacity, days, cap_correction):
     acc_index = 0
     accs = []
     for acc in acc_list:
@@ -25,7 +25,8 @@ def make_acc_list(acc_list, df_delayed, df_regulation, df_open, df_air_capacity,
                                                                                            df_actual_capacity,
                                                                                            df_saturation,
                                                                                            df_sector_capacity)
-        accs.append(a.Acc(acc_index, acc, days, df_o_acc, df_r_acc, df_d_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc))
+        accs.append(a.Acc(acc_index, acc, days, df_o_acc, df_r_acc, df_d_acc, df_m_acc, df_a_acc, df_s_acc, df_sc_acc,
+                          cap_correction))
         acc_index += 1
 
     return accs
