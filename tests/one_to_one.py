@@ -7,7 +7,7 @@ from ACC import acc as a
 from ACC import set_accs
 from DataAggregation import saturation
 from Solver.solver import Solver
-from test_match import test_cases
+from tests import test_cases
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)

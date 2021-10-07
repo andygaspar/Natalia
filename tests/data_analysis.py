@@ -8,8 +8,8 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-df_delayed = pd.read_csv("test_match/delayed_flights_15_min.csv")
-df_regulation = pd.read_csv("test_match/regulations.csv")
+df_delayed = pd.read_csv("tests/delayed_flights_15_min.csv")
+df_regulation = pd.read_csv("tests/regulations.csv")
 df_regulation.columns
 
 df_regulation_staffing = df_regulation[df_regulation.Reason == 'ATC Staffing']

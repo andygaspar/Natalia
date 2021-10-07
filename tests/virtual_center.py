@@ -7,7 +7,7 @@ from ACC import acc as a
 from ACC import set_accs
 from DataAggregation import saturation
 from Solver.solver_1 import Solver1
-from test_match import test_cases
+from tests import test_cases
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -31,12 +31,13 @@ days = df_open.date.unique()
 comp_time = time.time()
 
 tolerances = [0, 20, 40]
-cap_corrections = [1, 0.9, 0.8]
+cap_corrections = [1, 0.95, 0.9]
 
-test_cases.cases["VIRTUAL_CENTER"] = df_open.acc.unique()
+# test_cases.cases["VIRTUAL_CENTER"] = df_open.acc.unique()
 
-for key in test_cases.cases.keys():
+for key in list(test_cases.cases.keys())[-1:]:
     df = None
+    df_interactions = None
     for tolerance in tolerances:
         for cap_correction in cap_corrections:
             print(key, tolerance)
@@ -55,7 +56,12 @@ for key in test_cases.cases.keys():
 
             print("solving time", time.time() - solving_time)
 
-            df = solver.make_df(key, tolerance, df)
+            df = solver.make_df(key, tolerance, cap_correction, df)
             print("\n\n")
+            countries_dict = dict((zip(test_cases.countries_case[key], [test_cases.country_acc[country] for country
+                                                                        in test_cases.countries_case[key]])))
+            df_interactions = solver.make_interaction_df(countries_dict, tolerance, cap_correction, df_interactions)
+
 
     df.to_csv("Results/Virtual/" + key + ".csv", index_label=False, index=False)
+    df_interactions.to_csv("Results/Virtual/interactions" + key + ".csv", index_label=False, index=False)

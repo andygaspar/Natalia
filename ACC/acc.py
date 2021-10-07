@@ -49,7 +49,7 @@ class DailyConfiguration:
         return times[1:]
 
     def set_available(self):
-        available = np.around((self.actualCapacity - self.sectorsOpen) * self.availableCorrection).astype(int)
+        available = (self.actualCapacity * self.availableCorrection - self.sectorsOpen).astype(int)
         available[available < 0] = 0
         return available
 
@@ -122,8 +122,8 @@ class DailyConfiguration:
 
 class Acc:
 
-    def __init__(self, index, name, days, df_open_acc, df_regulation_acc, df_delayed_acc,
-                 df_airspace_capacity, df_actual_capacity, df_saturation, df_sector_capacity, only_staffing=False):
+    def __init__(self, index, name, days, df_open_acc, df_regulation_acc, df_delayed_acc, df_airspace_capacity,
+                 df_actual_capacity, df_saturation, df_sector_capacity, available_correction, only_staffing=False):
         self.name = name
         self.index = index
         self.sector_capacity = df_sector_capacity.sector_capacity.iloc[0]
@@ -133,7 +133,7 @@ class Acc:
             df_d_day, df_r_day, df_o_day, df_s_day = self.get_day_df(day, df_delayed_acc, df_regulation_acc,
                                                                      df_open_acc, df_saturation)
             daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_d_day, df_airspace_capacity,
-                                              df_actual_capacity, df_s_day, only_staffing)
+                                              df_actual_capacity, df_s_day, only_staffing, available_correction)
 
             # daily_config = DailyConfiguration(day, df_o_day, df_r_day, df_delayed_acc, df_airspace_capacity,
             #                                   df_actual_capacity, df_s_day, only_staffing)
